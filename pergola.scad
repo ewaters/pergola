@@ -14,10 +14,16 @@ two_six_h = 5.5 * in;
 four_four_w = 3.5 * in;
 four_four_h = 3.5 * in;
 
+six_six_w = 5.5 * in;
+six_six_h = 5.5 * in;
+
 // Associate individual pieces with their size
 
-a_post_x = four_four_w;
-a_post_y = four_four_h;
+a_post_size = 6;
+
+a_post_x = a_post_size == 4 ? four_four_w : six_six_w;
+a_post_y = a_post_size == 4 ? four_four_h : six_six_h;
+
 a_post_l = 10 * ft;
 
 b_beam_w = two_six_w;
@@ -85,7 +91,7 @@ f_slat_x_cl_spacing = c_beam_l / (f_slat_count + 1);
 
 // Construct the model
 
-b_beam();
+pergola();
 
 module pergola() {
   for (i = [0 : a_post_pair_count - 1]) {
@@ -118,14 +124,15 @@ module b_beam_pair() {
   }
 }
 
+b_beam_overhang_radius = 3.5 * in;
+
 module b_beam_overhang_cutout() {
-  cyn_radius = 3.5 * in;
   excess = .1 * in;
   rotate([0,90,0]) rotate([0,0,-90])
-  translate([cyn_radius + 2 * in,0,-excess])
+  translate([b_beam_overhang_radius + 2 * in,0,-excess])
   union() {
-    cylinder(h = b_beam_w + excess * 2, r = cyn_radius, $fn = 20);
-    translate([0, -cyn_radius, 0]) cube([b_beam_overhang, cyn_radius * 2, b_beam_w + excess * 2]);
+    cylinder(h = b_beam_w + excess * 2, r = b_beam_overhang_radius, $fn = 20);
+    translate([0, -b_beam_overhang_radius, 0]) cube([b_beam_overhang, b_beam_overhang_radius * 2, b_beam_w + excess * 2]);
   }
 }
 
@@ -134,10 +141,24 @@ module b_beam() {
     translate([0,-(b_beam_overhang + c_beam_w),0])
       cube([b_beam_w, b_beam_l, b_beam_h]);
 
-      %b_beam_overhang_cutout();
-      % translate([0, b_beam_l - (b_beam_overhang * 2), 0])
+      b_beam_overhang_cutout();
+      translate([0, b_beam_l - (b_beam_overhang * 2) - b_beam_overhang_radius, 0])
         rotate([180,0,0])
         b_beam_overhang_cutout();
+  }
+}
+
+c_beam_overhang_radius = 3.5 * in;
+
+module c_beam_overhang_cutout() {
+  excess = .1 * in;
+  translate([-(c_beam_overhang_radius + b_beam_w + 2 * in),0,0])
+  rotate([-90,0,0])
+  translate([0,0,-excess])
+  union() {
+    cylinder(h = c_beam_w + excess * 2, r = c_beam_overhang_radius, $fn = 20);
+    translate([-c_beam_overhang, -c_beam_overhang_radius, 0])
+      cube([c_beam_overhang, c_beam_overhang_radius * 2, c_beam_w + excess * 2]);
   }
 }
 
@@ -149,11 +170,35 @@ module c_beam_pair() {
 }
 
 module c_beam() {
-  translate([-(c_beam_overhang + b_beam_w),0,0])
-  cube([c_beam_l, c_beam_w, c_beam_h]);
+  difference() {
+    translate([-(c_beam_overhang + b_beam_w),0,0])
+      cube([c_beam_l, c_beam_w, c_beam_h]);
+    c_beam_overhang_cutout();
+    translate([c_beam_l - (c_beam_overhang * 2) - c_beam_overhang_radius,0, 0])
+        rotate([0,180,0])
+        c_beam_overhang_cutout();
+  }
+}
+
+f_slat_overhang_radius = 2 * in;
+
+module f_slat_overhang_cutout() {
+  excess = .1 * in;
+  rotate([0,90,0]) rotate([0,0,-90])
+  translate([f_slat_overhang_radius + 5 * in,0,-excess])
+  union() {
+    cylinder(h = f_slat_w + excess * 2, r = f_slat_overhang_radius, $fn = 20);
+    translate([0, -f_slat_overhang_radius, 0]) cube([f_slat_overhang, f_slat_overhang_radius * 2, f_slat_w + excess * 2]);
+  }
 }
 
 module f_slat() {
-  translate([0, -(f_slat_overhang + c_beam_w),0])
-  cube([f_slat_w, f_slat_l, f_slat_h]);
+  difference() {
+    translate([0, -(f_slat_overhang + c_beam_w),0])
+      cube([f_slat_w, f_slat_l, f_slat_h]);
+    f_slat_overhang_cutout();
+    translate([0, f_slat_l - (f_slat_overhang * 2) - f_slat_overhang_radius - 1 *in, 0])
+      rotate([180,0,0])
+      f_slat_overhang_cutout();
+  }
 }
