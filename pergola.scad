@@ -1,6 +1,6 @@
 // Define units
 
-in = 1;
+in = 1/12;
 ft = 12 * in;
 
 // Define sizes of lumber
@@ -24,7 +24,7 @@ a_post_size = 6;
 a_post_x = a_post_size == 4 ? four_four_w : six_six_w;
 a_post_y = a_post_size == 4 ? four_four_h : six_six_h;
 
-a_post_l = 10 * ft;
+a_post_l = 8 * ft;
 
 b_beam_w = two_six_w;
 b_beam_h = two_six_h;
@@ -53,12 +53,15 @@ b_beam_overhang = 8 * in;
 c_beam_overhang = 8 * in;
 f_slat_overhang = 8 * in;
 
-b_beam_upper_notch_depth = 0;
+layers = 3;
 
-c_beam_lower_notch_depth = 2 * in;
-c_beam_upper_notch_depth = 0;
+c_beam_lower_notch_depth = layers == 3 ? 2 * in : b_beam_h / 2 * in;
+c_beam_upper_notch_depth = layers == 3 ? 0 : f_slat_h / 2 * in;
 
-f_slat_lower_notch_depth = 1.5 * in;
+f_slat_lower_notch_depth = layers == 3 ? 1.5 * in : f_slat_h / 2 * in;
+b_beam_upper_notch_depth = layers == 3 ? 0 : c_beam_h / 2 * in;
+
+cyl_detail = 10;
 
 // Precompute measurements
 
@@ -91,6 +94,7 @@ f_slat_x_cl_spacing = c_beam_l / (f_slat_count + 1);
 
 // Construct the model
 
+//translate([-(a_post_x_inner_spacing + a_post_y / 2),-a_post_y_inner_spacing / 2, -a_post_l / 2]) 
 pergola();
 
 module pergola() {
@@ -131,7 +135,7 @@ module b_beam_overhang_cutout() {
   rotate([0,90,0]) rotate([0,0,-90])
   translate([b_beam_overhang_radius + 2 * in,0,-excess])
   union() {
-    cylinder(h = b_beam_w + excess * 2, r = b_beam_overhang_radius, $fn = 20);
+    cylinder(h = b_beam_w + excess * 2, r = b_beam_overhang_radius, $fn = cyl_detail);
     translate([0, -b_beam_overhang_radius, 0]) cube([b_beam_overhang, b_beam_overhang_radius * 2, b_beam_w + excess * 2]);
   }
 }
@@ -156,7 +160,7 @@ module c_beam_overhang_cutout() {
   rotate([-90,0,0])
   translate([0,0,-excess])
   union() {
-    cylinder(h = c_beam_w + excess * 2, r = c_beam_overhang_radius, $fn = 20);
+    cylinder(h = c_beam_w + excess * 2, r = c_beam_overhang_radius, $fn = cyl_detail);
     translate([-c_beam_overhang, -c_beam_overhang_radius, 0])
       cube([c_beam_overhang, c_beam_overhang_radius * 2, c_beam_w + excess * 2]);
   }
@@ -187,7 +191,7 @@ module f_slat_overhang_cutout() {
   rotate([0,90,0]) rotate([0,0,-90])
   translate([f_slat_overhang_radius + 5 * in,0,-excess])
   union() {
-    cylinder(h = f_slat_w + excess * 2, r = f_slat_overhang_radius, $fn = 20);
+    cylinder(h = f_slat_w + excess * 2, r = f_slat_overhang_radius, $fn = cyl_detail);
     translate([0, -f_slat_overhang_radius, 0]) cube([f_slat_overhang, f_slat_overhang_radius * 2, f_slat_w + excess * 2]);
   }
 }
