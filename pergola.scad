@@ -63,6 +63,13 @@ b_beam_upper_notch_depth = layers == 3 ? 0 : c_beam_h / 2 * in;
 
 cyl_detail = 10;
 
+e1_beam_inner_hypotenuse = 2 * ft;
+e2_beam_inner_hypotenuse = 2 * ft;
+
+// Angles are measured from the bottom of the triangle.
+e1_beam_angle = 45;
+e2_beam_angle = 45;
+
 // Precompute measurements
 
 c_beam_z = a_post_l - c_beam_h;
@@ -92,9 +99,19 @@ c_beam_pair_y_inner_spacing =
 
 f_slat_x_cl_spacing = c_beam_l / (f_slat_count + 1);
 
+e1_beam_inner_adjacent = e1_beam_inner_hypotenuse * cos(e1_beam_angle);
+e1_beam_inner_cross_opposite = e1_beam_inner_adjacent * sin(e1_beam_angle);
+e1_beam_outer_adjacent = (e_beam_w + e1_beam_inner_cross_opposite) / sin(e1_beam_angle);
+e1_beam_outer_hypotenuse = e1_beam_outer_adjacent / cos(e1_beam_angle);
+
+e2_beam_inner_adjacent = e2_beam_inner_hypotenuse * cos(e2_beam_angle);
+e2_beam_inner_cross_opposite = e2_beam_inner_adjacent * sin(e2_beam_angle);
+e2_beam_outer_adjacent = (e_beam_w + e2_beam_inner_cross_opposite) / sin(e2_beam_angle);
+e2_beam_outer_hypotenuse = e2_beam_outer_adjacent / cos(e2_beam_angle);
+
 // Construct the model
 
-//translate([-(a_post_x_inner_spacing + a_post_y / 2),-a_post_y_inner_spacing / 2, -a_post_l / 2]) 
+translate([-(a_post_x_inner_spacing + a_post_x * 1.5),-(a_post_y_inner_spacing/2 + a_post_y),0])
 pergola();
 
 module pergola() {
@@ -103,6 +120,11 @@ module pergola() {
       a_post();
       translate([0, a_post_y_inner_spacing + a_post_x, 0]) a_post();
       translate([0,0,b_beam_z]) b_beam_pair();
+	  if (i == a_post_pair_count - 1) {
+		translate([-a_post_x + e_beam_w,0,0]) e2_beams();
+	  } else {
+		e2_beams();
+	  }
     }
   }
 
@@ -110,6 +132,7 @@ module pergola() {
     translate([0,i * (c_beam_pair_y_inner_spacing + c_beam_pair_width),c_beam_z])
     c_beam_pair();
   }
+  e1_beams();
 
   translate([-(c_beam_overhang + b_beam_w + f_slat_w / 2),0,f_slat_z])
   for (i = [0 : f_slat_count - 1]) {
@@ -118,7 +141,8 @@ module pergola() {
 }
 
 module a_post() {
-  cube([a_post_x, a_post_y, a_post_l]);
+  //translate([0,0,-(sin($t * 180) * 2 * ft)])
+  color("DarkOliveGreen") cube([a_post_x, a_post_y, a_post_l]);
 }
 
 module b_beam_pair() {
@@ -141,7 +165,7 @@ module b_beam_overhang_cutout() {
 }
 
 module b_beam() {
-  difference() {
+  color("DarkKhaki") difference() {
     translate([0,-(b_beam_overhang + c_beam_w),0])
       cube([b_beam_w, b_beam_l, b_beam_h]);
 
@@ -197,7 +221,7 @@ module f_slat_overhang_cutout() {
 }
 
 module f_slat() {
-  difference() {
+  color("Khaki") difference() {
     translate([0, -(f_slat_overhang + c_beam_w),0])
       cube([f_slat_w, f_slat_l, f_slat_h]);
     f_slat_overhang_cutout();
@@ -205,4 +229,49 @@ module f_slat() {
       rotate([180,0,0])
       f_slat_overhang_cutout();
   }
+}
+
+module e1_beams() {
+	e1_beams_side();
+	translate([a_post_x + (a_post_pair_count - 1) * (a_post_x_inner_spacing + a_post_x),0,0])
+		mirror([1,0,0])
+		e1_beams_side();
+}
+
+module e1_beams_side() {
+	for (i = [0 : a_post_pair_count - 2]) {
+		translate([i * (a_post_x_inner_spacing + a_post_x), 0, 0]) {
+			translate([a_post_x, a_post_y - e_beam_w, a_post_l - e1_beam_outer_adjacent])
+				e1_beam();
+			translate([a_post_x, a_post_y_inner_spacing + a_post_y, a_post_l - e1_beam_outer_adjacent])
+				e1_beam();
+		}
+	}
+}
+
+module e1_beam() {
+	difference() {
+		color("Tan") rotate([0,-e1_beam_angle,0]) cube([e1_beam_outer_hypotenuse, e_beam_w, e_beam_h]);
+		translate([0,e_beam_w/2,0]) {
+			translate([-e_beam_h,-(e_beam_h/2),0]) cube([e_beam_h, e_beam_h, e1_beam_outer_hypotenuse]);
+			translate([0,-(e_beam_h/2),e1_beam_outer_adjacent]) cube([e1_beam_outer_hypotenuse, e_beam_h, e_beam_h]);
+		}
+	}
+}
+
+module e2_beam() {
+	difference() {
+		color("Tan") rotate([e2_beam_angle,0,0]) cube([e_beam_w, e2_beam_outer_hypotenuse, e_beam_h]);
+		translate([-(e_beam_h/2) + e_beam_w/2,0,0]) {
+			translate([0,-e_beam_h,0]) cube([e_beam_h, e_beam_h, e2_beam_outer_hypotenuse]);
+			translate([0,0,e2_beam_outer_adjacent]) cube([e_beam_h, e2_beam_outer_hypotenuse, e_beam_h]);
+		}
+	}
+}
+
+module e2_beams() {
+	translate([a_post_x - e_beam_w,a_post_y,b_beam_z + b_beam_h - e2_beam_outer_adjacent]) {
+		e2_beam();
+		translate([0,a_post_y_inner_spacing,0]) mirror([0,1,0]) e2_beam();
+	}
 }
