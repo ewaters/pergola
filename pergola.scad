@@ -61,6 +61,12 @@ c_beam_upper_notch_depth = layers == 3 ? 0 : f_slat_h / 2 * in;
 f_slat_lower_notch_depth = layers == 3 ? 1.5 * in : f_slat_h / 2 * in;
 b_beam_upper_notch_depth = layers == 3 ? 0 : c_beam_h / 2 * in;
 
+// Define curves
+
+b_beam_overhang_radius = 3.5 * in;
+c_beam_overhang_radius = 3.5 * in;
+f_slat_overhang_radius = 2 * in;
+
 cyl_detail = 10;
 
 e1_beam_inner_hypotenuse = 2 * ft;
@@ -101,15 +107,17 @@ f_slat_x_cl_spacing = c_beam_l / (f_slat_count + 1);
 
 e1_beam_inner_adjacent = e1_beam_inner_hypotenuse * cos(e1_beam_angle);
 e1_beam_inner_cross_opposite = e1_beam_inner_adjacent * sin(e1_beam_angle);
-e1_beam_outer_adjacent = (e_beam_w + e1_beam_inner_cross_opposite) / sin(e1_beam_angle);
+e1_beam_outer_adjacent = (e_beam_h + e1_beam_inner_cross_opposite) / sin(e1_beam_angle);
 e1_beam_outer_hypotenuse = e1_beam_outer_adjacent / cos(e1_beam_angle);
 
 e2_beam_inner_adjacent = e2_beam_inner_hypotenuse * cos(e2_beam_angle);
 e2_beam_inner_cross_opposite = e2_beam_inner_adjacent * sin(e2_beam_angle);
-e2_beam_outer_adjacent = (e_beam_w + e2_beam_inner_cross_opposite) / sin(e2_beam_angle);
+e2_beam_outer_adjacent = (e_beam_h + e2_beam_inner_cross_opposite) / sin(e2_beam_angle);
 e2_beam_outer_hypotenuse = e2_beam_outer_adjacent / cos(e2_beam_angle);
 
 // Construct the model
+
+//e1_beam();
 
 translate([-(a_post_x_inner_spacing + a_post_x * 1.5),-(a_post_y_inner_spacing/2 + a_post_y),0])
 pergola();
@@ -152,7 +160,6 @@ module b_beam_pair() {
   }
 }
 
-b_beam_overhang_radius = 3.5 * in;
 
 module b_beam_overhang_cutout() {
   excess = .1 * in;
@@ -175,8 +182,6 @@ module b_beam() {
         b_beam_overhang_cutout();
   }
 }
-
-c_beam_overhang_radius = 3.5 * in;
 
 module c_beam_overhang_cutout() {
   excess = .1 * in;
@@ -207,8 +212,6 @@ module c_beam() {
         c_beam_overhang_cutout();
   }
 }
-
-f_slat_overhang_radius = 2 * in;
 
 module f_slat_overhang_cutout() {
   excess = .1 * in;
@@ -251,7 +254,7 @@ module e1_beams_side() {
 
 module e1_beam() {
 	difference() {
-		color("Tan") rotate([0,-e1_beam_angle,0]) cube([e1_beam_outer_hypotenuse, e_beam_w, e_beam_h]);
+		color("Tan") rotate([0,-(90-e1_beam_angle),0]) cube([e1_beam_outer_hypotenuse, e_beam_w, e_beam_h]);
 		translate([0,e_beam_w/2,0]) {
 			translate([-e_beam_h,-(e_beam_h/2),0]) cube([e_beam_h, e_beam_h, e1_beam_outer_hypotenuse]);
 			translate([0,-(e_beam_h/2),e1_beam_outer_adjacent]) cube([e1_beam_outer_hypotenuse, e_beam_h, e_beam_h]);
@@ -261,7 +264,7 @@ module e1_beam() {
 
 module e2_beam() {
 	difference() {
-		color("Tan") rotate([e2_beam_angle,0,0]) cube([e_beam_w, e2_beam_outer_hypotenuse, e_beam_h]);
+		color("Tan") rotate([(90-e2_beam_angle),0,0]) cube([e_beam_w, e2_beam_outer_hypotenuse, e_beam_h]);
 		translate([-(e_beam_h/2) + e_beam_w/2,0,0]) {
 			translate([0,-e_beam_h,0]) cube([e_beam_h, e_beam_h, e2_beam_outer_hypotenuse]);
 			translate([0,0,e2_beam_outer_adjacent]) cube([e_beam_h, e2_beam_outer_hypotenuse, e_beam_h]);
