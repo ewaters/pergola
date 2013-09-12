@@ -34,8 +34,8 @@ c_beam_w = two_six_w;
 c_beam_h = two_six_h;
 c_beam_l = 20 * ft;
 
-e_beam_w = two_six_w;
-e_beam_h = two_six_h;
+e_beam_w = four_four_w;
+e_beam_h = four_four_h;
 
 f_slat_w = two_four_w;
 f_slat_h = two_four_h;
@@ -69,8 +69,8 @@ f_slat_overhang_radius = 2 * in;
 
 cyl_detail = 10;
 
-e1_beam_inner_hypotenuse = 2 * ft;
-e2_beam_inner_hypotenuse = 2 * ft;
+e1_beam_inner_hypotenuse = 2.4 * ft;
+e2_beam_inner_hypotenuse = e1_beam_inner_hypotenuse - 0.4 * ft;
 
 // Angles are measured from the bottom of the triangle.
 e1_beam_angle = 45;
@@ -128,10 +128,13 @@ module pergola() {
       a_post();
       translate([0, a_post_y_inner_spacing + a_post_x, 0]) a_post();
       translate([0,0,b_beam_z]) b_beam_pair();
-	  if (i == a_post_pair_count - 1) {
+	  if (i == 0) {
+		e2_beams();
+	  } else if (i == a_post_pair_count - 1) {
 		translate([-a_post_x + e_beam_w,0,0]) e2_beams();
 	  } else {
-		e2_beams();
+		translate([-(a_post_x/2 - e_beam_w/2),0,0]) e2_beams();
+//		translate([-a_post_x + e_beam_w,0,0]) e2_beams();
 	  }
     }
   }
@@ -149,7 +152,7 @@ module pergola() {
 }
 
 module a_post() {
-  //translate([0,0,-(sin($t * 180) * 2 * ft)])
+  translate([0,0,-(sin($t * 180) * 2 * ft)])
   color("DarkOliveGreen") cube([a_post_x, a_post_y, a_post_l]);
 }
 
@@ -253,21 +256,23 @@ module e1_beams_side() {
 }
 
 module e1_beam() {
+	sub_size = e_beam_h * 1.5;
 	difference() {
-		color("Tan") rotate([0,-(90-e1_beam_angle),0]) cube([e1_beam_outer_hypotenuse, e_beam_w, e_beam_h]);
+		color("red") rotate([0,-(90-e1_beam_angle),0]) cube([e1_beam_outer_hypotenuse, e_beam_w, e_beam_h]);
 		translate([0,e_beam_w/2,0]) {
-			translate([-e_beam_h,-(e_beam_h/2),0]) cube([e_beam_h, e_beam_h, e1_beam_outer_hypotenuse]);
-			translate([0,-(e_beam_h/2),e1_beam_outer_adjacent]) cube([e1_beam_outer_hypotenuse, e_beam_h, e_beam_h]);
+			translate([-sub_size,-(sub_size/2),0]) cube([sub_size, sub_size, e1_beam_outer_hypotenuse]);
+			translate([0,-(sub_size/2),e1_beam_outer_adjacent]) cube([e1_beam_outer_hypotenuse, sub_size, sub_size]);
 		}
 	}
 }
 
 module e2_beam() {
+	sub_size = e_beam_h * 1.5;
 	difference() {
-		color("Tan") rotate([(90-e2_beam_angle),0,0]) cube([e_beam_w, e2_beam_outer_hypotenuse, e_beam_h]);
-		translate([-(e_beam_h/2) + e_beam_w/2,0,0]) {
-			translate([0,-e_beam_h,0]) cube([e_beam_h, e_beam_h, e2_beam_outer_hypotenuse]);
-			translate([0,0,e2_beam_outer_adjacent]) cube([e_beam_h, e2_beam_outer_hypotenuse, e_beam_h]);
+		color("red") rotate([90-e2_beam_angle,0,0]) cube([e_beam_w, e2_beam_outer_hypotenuse, e_beam_h]);
+		translate([-(sub_size/2) + e_beam_w/2,0,0]) {
+			translate([0,-sub_size,0]) cube([sub_size, sub_size, e2_beam_outer_hypotenuse]);
+			translate([0,0,e2_beam_outer_adjacent]) cube([sub_size, e2_beam_outer_hypotenuse, sub_size]);
 		}
 	}
 }
